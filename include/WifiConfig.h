@@ -2,14 +2,8 @@
 #define WIFI_CONFIG_H
 
 #include <WiFiManager.h>
-// #include <ESP8266mDNS.h>
 WiFiManager wm;
 
-// void mdnsInit()
-// {
-//     MDNS.begin("ESPAbsensi");
-//     Serial.println("mDNS responder started");
-// }
 void connectToWiFi()
 {
     Serial.println("Trying to connect to saved WiFi...");
@@ -33,7 +27,7 @@ void reconnectWiFi()
         else if (millis() - startMillis >= timeout)
         {
             Serial.println("Failed to reconnect within 10 seconds.");
-            break; // Keluar dari loop jika timeout
+            break;
         }
     }
     WiFi.status() == WL_CONNECTED ? Serial.println("Reconnected to WiFi!") : wm.autoConnect("ESP-Reconnect Absensi");

@@ -5,38 +5,61 @@
 #include "OledConfig.h"
 #include "FirebaseConfig.h"
 
-// const char* mqttServer = "broker.hivemq.com";
-// const int mqttPort = 1883;
-// const char* mqttTopic = "rfid/tag";
-
+bool signUp = false;
+unsigned long delayMillis;
 void setup()
 {
     Serial.begin(115200);
-    // mdnsInit();
-    WiFi.status() != WL_CONNECTED ? connectToWiFi() : Serial.println("Connected to WiFi!");
-    // setupMqtt(mqttServer, mqttPort);
-    // connectToBroker();
-    initRfid(); // Inisialisasi pembaca RFID
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        connectToWiFi();
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            break;
+        }
+    }
+    Serial.println("Connected to WiFi!");
+    do
+    {
+        if (millis() - delayMillis > 500 || delayMillis == 0)
+        {
+            delayMillis = millis();
+            setupFire();
+            Serial.println("Firebase setup failed.");
+        }
+    } while (!Firebase.ready());
+    signUp = true;
+    initRfid();
 }
 
 void loop()
 {
-    // Memastikan koneksi ke broker MQTT tetap tersambung
-    // if (!mqttClient.connected()) {
-    //     connectToBroker();
-    // }
-    // mqttClient.loop();
-
-    // // Membaca data dari tag RFID
-    // String tagData = readTag();
-    // if (tagData != "") {  // Jika ada tag yang terbaca
-    //     sendMqttMessage(mqttTopic, tagData); // Mengirim data melalui MQTT
-    //     Serial.println("Tag dikirim: " + tagData);
-    // }
-
-    // delay(1000); // Delay untuk pembacaan berikutnya
-    String tagData = readTag();
-    if (tagData != "")
+    if (WiFi.status() == WL_CONNECTED)
     {
+        if (millis() - delayMillis > 1000)
+        {
+            delayMillis = millis();
+            if (Firebase.ready() && signUp)
+            {
+                String tagData = readTag();
+                if (tagData != "")
+                {
+                    sendDatatoFirebase(tagData);
+                    Serial.println("Tag dikirim: " + tagData);
+                }
+                else
+                {
+                    Serial.println("Menunggu Kartu DiTap");
+                }
+            }
+            else
+            {
+                // setupFirebase();
+            }
+        }
+    }
+    else
+    {
+        reconnectWiFi();
     }
 }

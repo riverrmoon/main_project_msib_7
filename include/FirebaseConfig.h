@@ -1,32 +1,84 @@
 #ifndef FIREBASE_CONFIG_H
 #define FIREBASE_CONFIG_H
+
 #include <Firebase_ESP_Client.h>
 
-#define FIREBASE_PROJECT_ID "https://msib-7-ta-ldre-default-rtdb.asia-southeast1.firebasedatabase.app/" // Ganti dengan ID Proyek Firebase Anda
-#define FIREBASE_API_KEY "AIzaSyDmnYvJv7QkXUZc-T3wxQKnjTUKpy8QnJM"                                      // Ganti dengan Web API Key Anda
-#define USER_EMAIL "user@example.com"                                                                   // Email pengguna jika menggunakan email/password
-#define USER_PASSWORD "user-password"                                                                   // Password pengguna jika menggunakan email/password
+#include <addons/TokenHelper.h>
+#include <addons/RTDBHelper.h>
+#include "TimeConfig.h"
+#define API_KEY "AIzaSyDmnYvJv7QkXUZc-T3wxQKnjTUKpy8QnJM"
+#define DATABASE_URL "https://msib-7-ta-ldre-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
-// Objek Firebase dan Config
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-
-if (Firebase.signUp(&config, &auth, "", ""))
+void setupFire()
 {
-  Serial.println("Signup successful");
-  signupOK = true;
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
+  config.api_key = API_KEY;
+
+  config.database_url = DATABASE_URL;
+  Firebase.reconnectNetwork(true);
+  fbdo.setBSSLBufferSize(4096 /* Rx buffer size in bytes from 512 - 16384 */, 1024 /* Tx buffer size in bytes from 512 - 16384 */);
+  Serial.print("Sign up new user... ");
+
+  if (Firebase.signUp(&config, &auth, "", ""))
+  {
+    Serial.println("ok");
+    config.token_status_callback = tokenStatusCallback;
+    Firebase.begin(&config, &auth);
+  }
+  else
+  {
+    Serial.printf("%s\n", config.signer.signupError.message.c_str());
+  }
 }
-else
+
+// bool setupFirebase()
+// {
+//   config.api_key = API_KEY;
+//   config.database_url = DATABASE_URL;
+//   Firebase.reconnectNetwork(true);
+//   fbdo.setBSSLBufferSize(4096, 1024);
+//   if (Firebase.signUp(&config, &auth, "", ""))
+//   {
+//     Serial.println("Firebase setup completed.");
+//     config.token_status_callback = tokenStatusCallback;
+//     Firebase.begin(&config, &auth);
+//     return true;
+//   }
+//   else
+//   {
+//     Serial.printf("%s\n", config.signer.signupError.message.c_str());
+//     return false;
+//   }
+// }
+
+// void reconnectFirebase()
+// {
+//   if (!Firebase.signUp(&config, &auth, "", ""))
+//   {
+//     Serial.println("Firebase Error: " + fbdo.errorReason());
+//   }
+//   else
+//     Firebase.begin(&config, &auth);
+// }
+
+void sendDatatoFirebase(const String &tagData)
 {
-  Serial.printf("Signup failed: %s\n", config.signer.signupError.message.c_str());
+  String pathUID = "MSIB7/dataBankSampahPerwira/dataAbsensi/" + tagData + "/uid";
+  String pathWaktu = "MSIB7/dataBankSampahPerwira/dataAbsensi/" + tagData + "/waktu";
+  if (Firebase.RTDB.setString(&fbdo, pathUID, String(tagData)) && Firebase.RTDB.setString(&fbdo, pathWaktu, "waktu"))
+  {
+    Serial.println("Data Sent to Firebase!");
+    Serial.println("Path: " + fbdo.dataPath());
+  }
+  else
+  {
+    Serial.println("Failed to Send Data.");
+    Serial.print("Reason: ");
+    Serial.println(fbdo.errorReason());
+  }
 }
-
-// Set up the Firebase token status callback function
-config.token_status_callback = tokenStatusCallback;
-
-// Initialize Firebase
-Firebase.begin(&config, &auth);
-Firebase.reconnectWiFi(true);
 
 #endif
