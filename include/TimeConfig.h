@@ -6,35 +6,40 @@
 #include <time.h>
 
 WiFiUDP ntpUDP;
-const long utcOffsetSeconds = 25200; // UTC+7 (WIB)
+const long utcOffsetSeconds = 0; // UTC+7 (WIB) 25200 = 7 jam
 NTPClient timeClient(ntpUDP, "id.pool.ntp.org", utcOffsetSeconds);
-
-// Nama hari dan bulan
 const String weekDays[7] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
 const String months[12] = {"Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"};
 
-// Inisialisasi NTP Client
 void initTime()
 {
     timeClient.begin();
-    timeClient.update();
 }
 
-// Mendapatkan waktu dalam format HH:MM:SS
+int getHour()
+{
+    timeClient.update();
+    return timeClient.getHours();
+}
+
+int getMinute()
+{
+    timeClient.update();
+    return timeClient.getMinutes();
+}
+
 String getTime()
 {
     timeClient.update();
     return timeClient.getFormattedTime();
 }
 
-// Mendapatkan hari dalam seminggu
 String getWeekDay()
 {
     timeClient.update();
     return weekDays[timeClient.getDay()];
 }
 
-// Mendapatkan tanggal saat ini dalam format YYYY-MM-DD
 String getDate()
 {
     timeClient.update();
@@ -48,7 +53,6 @@ String getDate()
     return String(year) + "-" + String(month) + "-" + String(day);
 }
 
-// Mendapatkan nama bulan
 String getMonthName()
 {
     timeClient.update();
@@ -59,7 +63,6 @@ String getMonthName()
     return months[month];
 }
 
-// Mendapatkan tahun saat ini
 int getYear()
 {
     timeClient.update();
@@ -69,7 +72,6 @@ int getYear()
     return ptm->tm_year + 1900;
 }
 
-// Mendapatkan bulan saat ini
 int getMonth()
 {
     timeClient.update();
@@ -79,7 +81,6 @@ int getMonth()
     return ptm->tm_mon + 1; // Bulan dalam `struct tm` mulai dari 0
 }
 
-// Mendapatkan hari dalam sebulan
 int getDay()
 {
     timeClient.update();
@@ -89,4 +90,4 @@ int getDay()
     return ptm->tm_mday;
 }
 
-#endif // TIME_CONFIG_H
+#endif

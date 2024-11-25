@@ -24,12 +24,16 @@ void setup()
         if (millis() - delayMillis > 500 || delayMillis == 0)
         {
             delayMillis = millis();
-            setupFire();
+            if (setupFire())
+            {
+                break;
+            }
             Serial.println("Firebase setup failed.");
         }
     } while (!Firebase.ready());
     signUp = true;
     initRfid();
+    initTime();
 }
 
 void loop()
@@ -44,8 +48,14 @@ void loop()
                 String tagData = readTag();
                 if (tagData != "")
                 {
-                    sendDatatoFirebase(tagData);
-                    Serial.println("Tag dikirim: " + tagData);
+                    if (isUidExistsAndGetData(tagData))
+                    {
+                        sendDatatoFirebase(tagData) ? Serial.println("Tag dikirim: " + tagData) : Serial.println("Gagal mengirim tag: " + tagData);
+                    }
+                    else
+                    {
+                        Serial.println("UID tidak terdaftar");
+                    }
                 }
                 else
                 {
