@@ -50,7 +50,14 @@ void loop()
                 {
                     if (isUidExistsAndGetData(tagData))
                     {
-                        sendDatatoFirebase(tagData) ? Serial.println("Tag dikirim: " + tagData) : Serial.println("Gagal mengirim tag: " + tagData);
+                        if (!isUidExists(tagData))
+                        {
+                            sendDatatoFirebase(tagData) ? Serial.println("Tag dikirim: " + tagData) : Serial.println("Gagal mengirim tag: " + tagData);
+                        }
+                        else
+                        {
+                            Serial.println("Sudah Pernah absensi");
+                        }
                     }
                     else
                     {

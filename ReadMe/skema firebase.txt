@@ -1,0 +1,30 @@
+id alat
+uid
+waktu
+
+
+
+msib7	
+	-dataBankSampahPerwira
+				-absensi
+					-date&time
+							-Absensi Masuk
+									-$uid
+										-uid:$uid
+										-waktu:$timestamp
+										-status:Tepat Waktu || Sedikit Terlambat || Terlambat Brutal
+										-statusAbsensi:Absen Masuk || Absen Keluar
+							-Absensi Keluar
+									-$uid
+										-uid:$uid
+										-waktu:$timestamp
+										-status:Tepat Waktu || Sedikit Terlambat || Terlambat Brutal
+										-statusAbsensi:Absen Masuk || Absen Keluar
+				-datakaryawan
+						-$uid
+									-nama
+									-umur
+									-noktp
+									-uid:$uid
+
+				-dataMitra

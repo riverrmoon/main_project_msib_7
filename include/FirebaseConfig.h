@@ -286,4 +286,21 @@ bool isUidExistsAndGetData(String uid)
   }
 }
 
+bool isUidExists(const String &tagData)
+{
+  String pathUID = path(tagData);
+  if (Firebase.RTDB.getString(&fbdo, pathUID))
+  {
+    if (fbdo.stringData() == "")
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 #endif

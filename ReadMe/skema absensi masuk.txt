@@ -1,0 +1,32 @@
+feature alat absensi
+
+setup
+wifi tidak connect
+	akan melakukan koneksi ke wifi yang sebelumnya telah tersambung
+	jika tidak ada koneksi/wifi tidak ditemukan akan memasuki mode accesspoint
+jika wifi konek akan melakukan firebase setup dan init rfid
+
+loop
+jika koneksi wifi tersambung
+	akan menjalankan apakah firebase ready
+		jika iya akan melakukan pembacaan data rfid
+			jika terdeteksi tag
+				akan melakukan pengecekan apakah didalam database ada uid yang telah didaftarkan sebelumya
+					jika uid ditemukan
+						akan mengecek apakah sudah absensi masuk|keluar //untuk mencegah redundant data
+							jika true mengirim data absen
+							menampilkan nama pemilik kartu
+						jika false
+							sudah absen masuk | keluar
+					jika uid tidak ditemukan
+						akan menampilkan error data tidak ter regist
+			jika tidak terdeteksi tag
+				menampilkan "menunggu kartu ditap"
+	jika tidak firebase ready
+		akan melakukan reconnect firebase
+jika koneksi wifi putus
+	akan melakukan koneksi ulang seperti diatas
+
+
+
+rencana kedepan akan memakai struktur tahun/bulan/hari/$uid
