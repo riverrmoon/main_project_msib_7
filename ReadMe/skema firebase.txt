@@ -1,30 +1,11 @@
-id alat
-uid
-waktu
+skema firebase
 
+absensi dilakukan dari jam 6-10 untuk absen Masuk
+absensi dilakukan dari jam 15-19 untuk absen Keluar
+tidak bisa melakukan absensi jika jam <6 dan dari jam 11-15 dan >19
 
+pengecekan apakah data terdaftar pada database dan akan mengambil data nama pemilik kartu
+pengecekan apakah sudah pernah absensi masuk/Keluar untuk mencegah redundant data
 
-msib7	
-	-dataBankSampahPerwira
-				-absensi
-					-date&time
-							-Absensi Masuk
-									-$uid
-										-uid:$uid
-										-waktu:$timestamp
-										-status:Tepat Waktu || Sedikit Terlambat || Terlambat Brutal
-										-statusAbsensi:Absen Masuk || Absen Keluar
-							-Absensi Keluar
-									-$uid
-										-uid:$uid
-										-waktu:$timestamp
-										-status:Tepat Waktu || Sedikit Terlambat || Terlambat Brutal
-										-statusAbsensi:Absen Masuk || Absen Keluar
-				-datakaryawan
-						-$uid
-									-nama
-									-umur
-									-noktp
-									-uid:$uid
-
-				-dataMitra
+reconnect firebase jika mengalami kegagalan setup 
+setup firebase jika pertama kali alat dinyalakan

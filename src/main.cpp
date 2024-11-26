@@ -71,7 +71,7 @@ void loop()
             }
             else
             {
-                // setupFirebase();
+                reconnectFirebase();
             }
         }
     }

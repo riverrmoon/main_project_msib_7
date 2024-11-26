@@ -6,7 +6,7 @@
 #include <time.h>
 
 WiFiUDP ntpUDP;
-const long utcOffsetSeconds = 0; // UTC+7 (WIB) 25200 = 7 jam
+const long utcOffsetSeconds = 25200; // UTC+7 (WIB) 25200 = 7 jam
 NTPClient timeClient(ntpUDP, "id.pool.ntp.org", utcOffsetSeconds);
 const String weekDays[7] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
 const String months[12] = {"Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"};

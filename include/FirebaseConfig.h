@@ -157,15 +157,27 @@ bool setupFire()
 }
 
 // function for reconnect firebase
-//  void reconnectFirebase()
-//  {
-//    if (!Firebase.signUp(&config, &auth, "", ""))
-//    {
-//      Serial.println("Firebase Error: " + fbdo.errorReason());
-//    }
-//    else
-//      Firebase.begin(&config, &auth);
-//  }
+void reconnectFirebase()
+{
+  config.api_key = API_KEY;
+
+  config.database_url = DATABASE_URL;
+  Firebase.reconnectNetwork(true);
+  fbdo.setBSSLBufferSize(4096 /* Rx buffer size in bytes from 512 - 16384 */, 1024 /* Tx buffer size in bytes from 512 - 16384 */);
+  Serial.print("Sign up new user... ");
+
+  if (Firebase.signUp(&config, &auth, "", ""))
+  {
+    Serial.println("ok");
+    config.token_status_callback = tokenStatusCallback;
+    Firebase.begin(&config, &auth);
+  }
+  else
+  {
+    Serial.printf("%s\n", config.signer.signupError.message.c_str());
+    Serial.println("Perangkat harus direstart");
+  }
+}
 
 // function for send data
 void sendDataTepatWaktu(const String &tagData)
