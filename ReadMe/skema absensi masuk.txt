@@ -1,12 +1,14 @@
 feature alat absensi
 
 setup
+Inisialisasi Oled
 wifi tidak connect
 	akan melakukan koneksi ke wifi yang sebelumnya telah tersambung
 	jika tidak ada koneksi/wifi tidak ditemukan akan memasuki mode accesspoint
 jika wifi konek akan melakukan firebase setup dan init rfid
 
 loop
+
 jika koneksi wifi tersambung
 	akan menjalankan apakah firebase ready
 		jika iya akan melakukan pembacaan data rfid
