@@ -7,34 +7,140 @@
 #include "TimeConfig.h"
 #define API_KEY "AIzaSyDmnYvJv7QkXUZc-T3wxQKnjTUKpy8QnJM"
 #define DATABASE_URL "https://msib-7-ta-ldre-default-rtdb.asia-southeast1.firebasedatabase.app/"
-
+#define USER_EMAIL "ibadcek@gmail.com"
+#define USER_PASSWORD "ibadcek@gmail.com"
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-const int menitToleransi = 15;
-const int jamLimitBatasBawah = 6;
-const int jamAbsenMasuk = 8;
-const int jamLimitAbsenMasuk = 10;
-const int jamLimitBatasAtas = 15;
-const int jamLimitAbsenKeluar = 19;
-
-// function for validation time
-bool valTepatWaktu() // efektif dari jam >=6-<=8 <=15 menit
+String getPathControl()
 {
-  if (getHour() >= jamLimitBatasBawah && getHour() <= jamAbsenMasuk)
+  String path = "MSIB7/dataBankSampahPerwira/controlInput/inputWaktu/";
+  return path;
+}
+int getMinuteToleransi()
+{
+  String path = getPathControl() + "menitToleransi";
+  if (Firebase.RTDB.getInt(&fbdo, path))
   {
-    if (getMinute() <= menitToleransi)
-      return true;
+    if (fbdo.stringData() != "")
+    {
+      int menit = fbdo.intData();
+      return menit;
+    }
     else
-      return false;
+      return 15;
   }
   else
-    return false;
+    return 15;
 }
-bool valSedikitTerlambat() // efektif dari jam >=6-<=8 >15 menit
+int getJamLimitBatasBawah()
 {
-  if (getHour() >= jamLimitBatasBawah && getHour() <= jamAbsenMasuk)
+  String path = getPathControl() + "jamLimitBatasBawah";
+  if (Firebase.RTDB.getInt(&fbdo, path))
+  {
+    if (fbdo.stringData() != "")
+    {
+      int jamLimitBatasBawah = fbdo.intData();
+      return jamLimitBatasBawah;
+    }
+    else
+      return 6;
+  }
+  else
+    return 6;
+}
+int getJamAbsenMasuk()
+{
+  String path = getPathControl() + "jamAbsenMasuk";
+  if (Firebase.RTDB.getInt(&fbdo, path))
+  {
+    if (fbdo.stringData() != "")
+    {
+      int jamAbsenMasuk = fbdo.intData();
+      return jamAbsenMasuk;
+    }
+    else
+      return 8;
+  }
+  else
+    return 8;
+}
+int getJamLimitAbsenMasuk()
+{
+  String path = getPathControl() + "jamLimitAbsenMasuk";
+  if (Firebase.RTDB.getInt(&fbdo, path))
+  {
+    if (fbdo.stringData() != "")
+    {
+      int jamLimitAbsenMasuk = fbdo.intData();
+      return jamLimitAbsenMasuk;
+    }
+    else
+      return 15;
+  }
+  else
+    return 15;
+}
+int getJamAbsenKeluar()
+{
+  String path = getPathControl() + "jamAbsenKeluar";
+  if (Firebase.RTDB.getInt(&fbdo, path))
+  {
+    if (fbdo.stringData() != "")
+    {
+      int jamAbsenKeluar = fbdo.intData();
+      return jamAbsenKeluar;
+    }
+    else
+      return 15;
+  }
+  else
+    return 15;
+}
+int getJamLimitAbsenKeluar()
+{
+  String path = getPathControl() + "limitJamAbsenKeluar";
+  if (Firebase.RTDB.getInt(&fbdo, path))
+  {
+    if (fbdo.stringData() != "")
+    {
+      int limitJamAbsenKeluar = fbdo.intData();
+      return limitJamAbsenKeluar;
+    }
+    else
+      return 19;
+  }
+  else
+    return 19;
+}
+
+int menitToleransi = getMinute();
+int jamLimitBatasBawah = getJamLimitBatasBawah();
+int jamAbsenMasuk = getJamAbsenMasuk();
+int jamLimitAbsenMasuk = getJamLimitAbsenMasuk();
+int jamAbsenKeluar = getJamAbsenKeluar();
+int jamLimitAbsenKeluar = getJamLimitAbsenKeluar();
+
+// function for validation time
+bool valTepatWaktu() // Efektif dari jam >= 6 sampai <= 8:15
+{
+  int currentHour = getHour();
+  int currentMinute = getMinute();
+
+  if (currentHour >= jamLimitBatasBawah && currentHour < jamAbsenMasuk)
+  {
+    return true;
+  }
+  else if (currentHour == jamAbsenMasuk && currentMinute <= menitToleransi)
+  {
+    return true;
+  }
+  return false;
+}
+bool valSedikitTerlambat() // efektif dari jam 8 >15 menit
+{
+  if (getHour() == jamAbsenMasuk)
   {
     if (getMinute() > menitToleransi)
       return true;
@@ -46,30 +152,39 @@ bool valSedikitTerlambat() // efektif dari jam >=6-<=8 >15 menit
 }
 bool valTerlambat() // efektif dari jam >=8-<=10
 {
-  if (getHour() >= jamLimitBatasBawah && getHour() <= jamLimitAbsenMasuk)
+  if (getHour() > jamAbsenMasuk && getHour() <= jamLimitAbsenMasuk)
     return true;
   else
     return false;
 }
 bool valAbsenKeluar() // efektif dari jam >=15 - >=19
 {
-  if (getHour() >= jamLimitBatasAtas && getHour() <= jamLimitAbsenKeluar)
+  if (getHour() >= jamAbsenKeluar && getHour() <= jamLimitAbsenKeluar)
     return true;
   else
     return false;
 }
 bool valCantSend() // efektif dari jam >10 - <15
 {
-  if (getHour() < jamLimitBatasBawah || (getHour() > jamLimitAbsenMasuk && getHour() < jamLimitBatasAtas) || getHour() > jamLimitAbsenKeluar)
+  if (getHour() < jamLimitBatasBawah || (getHour() > jamLimitAbsenMasuk && getHour() < jamAbsenKeluar) || getHour() > jamLimitAbsenKeluar)
     return true;
   else
     return false;
 }
-
+// function for validation absen masuk dan keluar
+bool sendAbsenMasuk() // jam masuk >= 6 - <= 10
+{
+  if (getHour() >= jamLimitBatasBawah && getHour() <= jamLimitAbsenMasuk)
+  {
+    return true;
+  }
+  else
+    return false;
+}
 // function for status absensi
 String getStatusAbsensi()
 {
-  if (getHour() >= jamLimitBatasBawah && getHour() <= jamLimitAbsenMasuk)
+  if (sendAbsenMasuk())
   {
     return "absensiMasuk";
   }
@@ -97,8 +212,7 @@ String getStatus()
     return "error";
   }
 }
-
-// function for path Absensi Masuk
+// function for path Absensi
 String path(const String &tagData)
 {
   String tagAbsensi = getStatusAbsensi();
@@ -116,164 +230,82 @@ String pathStatus(const String &tagData)
 {
   return path(tagData) + "/status";
 }
-
+// function for register data
+String pathRegisterUID(const String &tagData)
+{
+  return "MSIB7/dataBankSampahPerwira/dataRegister/" + tagData + "/uid";
+}
+String pathRegisterTime(const String &tagData)
+{
+  return "MSIB7/dataBankSampahPerwira/dataRegister/" + tagData + "/waktu";
+}
+// function for send to firebase
 bool sendPath(const String &tagData)
 {
-  if (getHour() >= jamLimitBatasBawah && getHour() <= jamLimitAbsenMasuk)
+  if (sendAbsenMasuk())
   {
-    Firebase.RTDB.setString(&fbdo, pathUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathWaktu(tagData), getTime()) && Firebase.RTDB.setString(&fbdo, pathStatus(tagData), (getStatus()));
-    return true;
+    if (Firebase.RTDB.setString(&fbdo, pathUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathWaktu(tagData), getTime()) && Firebase.RTDB.setString(&fbdo, pathStatus(tagData), getStatus()))
+      return true;
+    else
+      return false;
+  }
+  else if (valAbsenKeluar())
+  {
+    if (Firebase.RTDB.setString(&fbdo, pathUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathWaktu(tagData), getTime()))
+      return true;
+    else
+      return false;
   }
   else
-  {
-    Firebase.RTDB.setString(&fbdo, pathUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathWaktu(tagData), getTime());
     return false;
-  }
 }
-
 // function for setup firebase
-bool setupFire()
+void setupFire()
 {
   Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
   config.api_key = API_KEY;
-
   config.database_url = DATABASE_URL;
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
   Firebase.reconnectNetwork(true);
   fbdo.setBSSLBufferSize(4096 /* Rx buffer size in bytes from 512 - 16384 */, 1024 /* Tx buffer size in bytes from 512 - 16384 */);
-  Serial.print("Sign up new user... ");
-
-  if (Firebase.signUp(&config, &auth, "", ""))
-  {
-    Serial.println("ok");
-    config.token_status_callback = tokenStatusCallback;
-    Firebase.begin(&config, &auth);
-    return true;
-  }
-  else
-  {
-    Serial.printf("%s\n", config.signer.signupError.message.c_str());
-    return false;
-  }
+  config.token_status_callback = tokenStatusCallback;
+  Firebase.begin(&config, &auth);
 }
-
 // function for reconnect firebase
 void reconnectFirebase()
 {
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
   config.api_key = API_KEY;
-
   config.database_url = DATABASE_URL;
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
   Firebase.reconnectNetwork(true);
   fbdo.setBSSLBufferSize(4096 /* Rx buffer size in bytes from 512 - 16384 */, 1024 /* Tx buffer size in bytes from 512 - 16384 */);
-  Serial.print("Sign up new user... ");
-
-  if (Firebase.signUp(&config, &auth, "", ""))
-  {
-    Serial.println("ok");
-    config.token_status_callback = tokenStatusCallback;
-    Firebase.begin(&config, &auth);
-  }
-  else
-  {
-    Serial.printf("%s\n", config.signer.signupError.message.c_str());
-    Serial.println("Perangkat harus direstart");
-  }
+  config.token_status_callback = tokenStatusCallback;
+  Firebase.begin(&config, &auth);
 }
-
-// function for send data
-void sendDataTepatWaktu(const String &tagData)
-{
-  if (sendPath(tagData))
-  {
-    Serial.println("Data Sent to Firebase!");
-    Serial.println("Path: " + fbdo.dataPath());
-  }
-  else
-  {
-    Serial.println("Failed to Send Data.");
-    Serial.print("Reason: ");
-    Serial.println(fbdo.errorReason());
-  }
-}
-void sendDataSedikitTerlambat(const String &tagData)
-{
-  if (sendPath(tagData))
-  {
-    Serial.println("Data Sent to Firebase!");
-    Serial.println("Path: " + fbdo.dataPath());
-  }
-  else
-  {
-    Serial.println("Failed to Send Data.");
-    Serial.print("Reason: ");
-    Serial.println(fbdo.errorReason());
-  }
-}
-void sendDataTerlambat(const String &tagData)
-{
-  if (sendPath(tagData))
-  {
-    Serial.println("Data Sent to Firebase!");
-    Serial.println("Path: " + fbdo.dataPath());
-  }
-  else
-  {
-    Serial.println("Failed to Send Data.");
-    Serial.print("Reason: ");
-    Serial.println(fbdo.errorReason());
-  }
-}
-void sendDataAbsenKeluar(const String &tagData)
-{
-  if (sendPath(tagData))
-  {
-    Serial.println("Data Sent to Firebase!");
-    Serial.println("Path: " + fbdo.dataPath());
-  }
-  else
-  {
-    Serial.println("Failed to Send Data.");
-    Serial.print("Reason: ");
-    Serial.println(fbdo.errorReason());
-  }
-}
-
 // function for validation & send data
 bool sendDatatoFirebase(const String &tagData)
 {
-  if (valTepatWaktu())
+  if (sendPath(tagData))
   {
-    sendDataTepatWaktu(tagData);
-    return true;
-  }
-  else if (valSedikitTerlambat())
-  {
-    sendDataSedikitTerlambat(tagData);
-    return true;
-  }
-  else if (valTerlambat())
-  {
-    sendDataTerlambat(tagData);
+    Serial.println("Data Sent to Firebase!");
     return true;
   }
   else if (valCantSend())
   {
-    Serial.println("Error : belum ready");
+    Serial.println("Error : tidak diperbolehkan absen");
     Serial.println(getHour());
     return false;
-  }
-  else if (valAbsenKeluar())
-  {
-    sendDataAbsenKeluar(tagData);
-    return true;
   }
   else
   {
     Serial.println("Error : " + fbdo.errorReason());
-    Serial.println(getHour());
     return false;
   }
 }
-
+// function for validation and get data uid
 bool isUidExistsAndGetData(String uid)
 {
   String path = "MSIB7/dataBankSampahPerwira/dataKaryawanAbsensi/" + uid + "/Nama";
@@ -297,7 +329,7 @@ bool isUidExistsAndGetData(String uid)
     return false;
   }
 }
-
+// function for validation if uid exist in same day
 bool isUidExists(const String &tagData)
 {
   String pathUID = path(tagData);
@@ -314,5 +346,13 @@ bool isUidExists(const String &tagData)
   }
   return false;
 }
-
+// function for data registrasion
+bool sendRegisterData(const String &tagData)
+{
+  if (Firebase.RTDB.setString(&fbdo, pathRegisterUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathRegisterTime(tagData), getTime()))
+  {
+    return true;
+  }
+  return false;
+}
 #endif
