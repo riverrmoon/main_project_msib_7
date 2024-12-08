@@ -17,8 +17,10 @@ Buzzer buzzer(0);
 void setup()
 {
     Serial.begin(115200);
+    buzzer.beep(1, 110);
     button.setDebounceTime(50); // set debounce time to 50 milliseconds
     button.setCountMode(COUNT_FALLING);
+    buzzer.beep(1, 110);
     // Inisialisasi OLED
     if (!myOled.begin())
     {
