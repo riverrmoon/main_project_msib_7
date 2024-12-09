@@ -124,49 +124,48 @@ void Registrasi()
 void loop()
 {
     button.loop();
-    unsigned long switchValue = button.getCount();
-    if (WiFi.status() == WL_CONNECTED) // wifi connected
+
+    // Perbarui kontrol dari Firebase setiap interval
+    if (millis() - lastControlUpdate >= controlUpdateInterval)
     {
-        if (millis() - delayMillis > 500) // read after 500ms
-        {
-            Serial.println(switchValue);
-            delayMillis = millis();
-            if (Firebase.ready()) // firebase ready
-            {
-                updateControlValues();
-                if (switchValue <= 1)
-                {
-                    if (switchValue == 0) // Mode absensi
-                    {
-                        Absensi();
-                        Serial.println("Mode: Absensi");
-                        myOled.displayText("Mode: Absensi", 2);
-                    }
-                    else if (switchValue == 1) // Mode registrasi
-                    {
-                        Registrasi();
-                        Serial.println("Mode: Registrasi");
-                        myOled.displayText("Mode: Registrasi", 2);
-                    }
-                }
-                else // reset count
-                {
-                    button.resetCount(); // Reset jika count lebih dari 2
-                }
-            }
-            else // reconnect firebase
-            {
-                Serial.println("Tidak Terkoneksi Firebase!");
-                reconnectFirebase();
-            }
-        }
+        lastControlUpdate = millis();
+        updateControlValues();
+        Serial.println("Kontrol Firebase diperbarui.");
     }
-    else // reconnect wifi
+
+    // Periksa koneksi WiFi
+    if (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("Tidak Terkoneksi Wifi!");
-        myOled.displayText("Tidak", 2, 0);
-        myOled.displayText("Terkoneksi", 2, 21, 1);
-        myOled.displayText("Wifi!", 2, 42, 1);
+        Serial.println("Tidak Terkoneksi WiFi!");
         reconnectWiFi();
     }
+
+    unsigned long switchValue = button.getCount();
+    if (Firebase.ready())
+    {
+        if (switchValue == 0)
+        {
+            Absensi();
+            Serial.println("Mode: Absensi");
+            myOled.displayText("Mode: Absensi", 2);
+        }
+        else if (switchValue == 1)
+        {
+            Registrasi();
+            Serial.println("Mode: Registrasi");
+            myOled.displayText("Mode: Registrasi", 2);
+        }
+        else if (switchValue > 1)
+        {
+            Serial.println("Reset tombol, count terlalu besar!");
+            button.resetCount();
+        }
+    }
+    else
+    {
+        Serial.println("Tidak Terkoneksi Firebase!");
+        reconnectFirebase();
+    }
+
+    delay(500); // Delay untuk stabilitas
 }
