@@ -13,6 +13,13 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
+int menitToleransi = 15;
+int jamLimitBatasBawah = 6;
+int jamAbsenMasuk = 8;
+int jamLimitAbsenMasuk = 10;
+int jamAbsenKeluar = 15;
+int jamLimitAbsenKeluar = 19;
+
 String getPathControl()
 {
   String path = "MSIB7/dataBankSampahPerwira/controlInput/inputWaktu/";
@@ -20,7 +27,7 @@ String getPathControl()
 }
 int getMinuteToleransi()
 {
-  String path = getPathControl() + "menitToleransi";
+  String path = getPathControl() + "toleranMenit";
   if (Firebase.RTDB.getInt(&fbdo, path))
   {
     if (fbdo.stringData() != "")
@@ -115,12 +122,37 @@ int getJamLimitAbsenKeluar()
     return 19;
 }
 
-int menitToleransi = getMinute();
-int jamLimitBatasBawah = getJamLimitBatasBawah();
-int jamAbsenMasuk = getJamAbsenMasuk();
-int jamLimitAbsenMasuk = getJamLimitAbsenMasuk();
-int jamAbsenKeluar = getJamAbsenKeluar();
-int jamLimitAbsenKeluar = getJamLimitAbsenKeluar();
+void updateControlValues()
+{
+  menitToleransi = getMinuteToleransi();
+  jamLimitBatasBawah = getJamLimitBatasBawah();
+  jamAbsenMasuk = getJamAbsenMasuk();
+  jamLimitAbsenMasuk = getJamLimitAbsenMasuk();
+  jamAbsenKeluar = getJamAbsenKeluar();
+  jamLimitAbsenKeluar = getJamLimitAbsenKeluar();
+
+  Serial.println("Kontrol Firebase diperbarui:");
+  Serial.println("menitToleransi: " + String(menitToleransi));
+  Serial.println("jamLimitBatasBawah: " + String(jamLimitBatasBawah));
+  Serial.println("jamAbsenMasuk: " + String(jamAbsenMasuk));
+  Serial.println("jamLimitAbsenMasuk: " + String(jamLimitAbsenMasuk));
+  Serial.println("jamAbsenKeluar: " + String(jamAbsenKeluar));
+  Serial.println("jamLimitAbsenKeluar: " + String(jamLimitAbsenKeluar));
+}
+
+void firebaseStreamCallback(FirebaseStream data)
+{
+  Serial.println("Data kontrol diperbarui dari Firebase.");
+  updateControlValues();
+}
+
+void firebaseStreamTimeoutCallback(bool timeout)
+{
+  if (timeout)
+  {
+    Serial.println("Stream timeout, mencoba ulang...");
+  }
+}
 
 // function for validation time
 bool valTepatWaktu() // Efektif dari jam >= 6 sampai <= 8:15
@@ -290,7 +322,6 @@ bool sendDatatoFirebase(const String &tagData)
 {
   if (sendPath(tagData))
   {
-    Serial.println("Data Sent to Firebase!");
     return true;
   }
   else if (valCantSend())
@@ -349,6 +380,9 @@ bool isUidExists(const String &tagData)
 // function for data registrasion
 bool sendRegisterData(const String &tagData)
 {
+  Serial.print(menitToleransi + " " + jamLimitBatasBawah);
+  Serial.print(jamAbsenMasuk + " " + jamLimitAbsenMasuk);
+  Serial.println(jamAbsenKeluar + " " + jamLimitAbsenKeluar);
   if (Firebase.RTDB.setString(&fbdo, pathRegisterUID(tagData), String(tagData)) && Firebase.RTDB.setString(&fbdo, pathRegisterTime(tagData), getTime()))
   {
     return true;

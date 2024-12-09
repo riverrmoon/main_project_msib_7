@@ -7,13 +7,11 @@
 #include <ezButton.h>
 
 ezButton button(0);
-unsigned long delayMillis;
-int lastSwitchValue = 1; // Default HIGH
-unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 50;
-// Membuat instance MyOLED
+unsigned long delayMillis = 0;
+unsigned long lastControlUpdate = 0;
+const unsigned long controlUpdateInterval = 30000;
 MyOLED myOled;
-Buzzer buzzer(0);
+Buzzer buzzer(2);
 void setup()
 {
     Serial.begin(115200);
@@ -39,6 +37,7 @@ void setup()
     myOled.displayText("Terkoneksi", 2);
     myOled.displayText("Wifi!", 2, 42, 1);
     setupFire();
+    updateControlValues();
     initRfid();
     initTime();
 }
@@ -58,18 +57,22 @@ void Absensi()
             strownerName.toCharArray(ownerName, sizeof(ownerName));
             if (!isUidExists(tagData))
             {
-                sendDatatoFirebase(tagData) ? Serial.println("Tag dikirim: " + tagData) : Serial.println("Gagal mengirim tag: " + tagData);
-                buzzer.beep(2, 70);
-                Serial.println("Sudah Presensi");
-                myOled.displayText(ownerName, 2, 0);
-                myOled.displayText("Hadir!", 2, 21, 1);
-                delay(2000);
+                if (sendDatatoFirebase(tagData))
+                {
+                    Serial.println("Tag dikirim: " + tagData);
+                    buzzer.beep(2, 70);
+                    Serial.println("Sudah Presensi");
+                    myOled.displayText(ownerName, 2, 0);
+                    myOled.displayText("Hadir!", 2, 21, 1);
+                    delay(2000);
+                }
+                else
+                    Serial.println("Gagal mengirim tag: " + tagData);
             }
             else
             {
                 Serial.println("Sudah Pernah absensi");
                 buzzer.beep(2, 70);
-                Serial.println("Sudah Presensi");
                 myOled.displayText(ownerName, 2, 0);
                 myOled.displayText("Sudah", 2, 21, 1);
                 myOled.displayText("Presensi!", 2, 42, 1);
@@ -85,7 +88,7 @@ void Absensi()
             myOled.displayText(UID, 2);
             myOled.displayText("Tidak", 2, 21, 1);
             myOled.displayText("Terdaftar!", 2, 42, 1);
-            delay(3000);
+            delay(2000);
         }
     }
     else // menunggu kartu ditap
@@ -100,11 +103,16 @@ void Registrasi()
     String tagData = readTag();
     if (tagData != "")
     {
-        sendRegisterData(tagData) ? Serial.println("Tag dikirim: " + tagData) : Serial.println("Gagal mengirim tag: " + tagData);
-        Serial.println("Registrasi Berhasil");
-        myOled.displayText("Registrasi", 2, 0);
-        myOled.displayText("Berhasil!", 2, 21, 1);
-        delay(2000);
+        if (sendRegisterData(tagData))
+        {
+            Serial.println("Tag dikirim: " + tagData);
+            Serial.println("Registrasi Berhasil");
+            myOled.displayText("Registrasi", 2, 0);
+            myOled.displayText("Berhasil!", 2, 21, 1);
+            delay(2000);
+        }
+        else
+            Serial.println("Gagal mengirim tag: " + tagData);
     }
     else // menunggu kartu ditap
     {
@@ -125,6 +133,7 @@ void loop()
             delayMillis = millis();
             if (Firebase.ready()) // firebase ready
             {
+                updateControlValues();
                 if (switchValue <= 1)
                 {
                     if (switchValue == 0) // Mode absensi
@@ -140,7 +149,7 @@ void loop()
                         myOled.displayText("Mode: Registrasi", 2);
                     }
                 }
-                else
+                else // reset count
                 {
                     button.resetCount(); // Reset jika count lebih dari 2
                 }
