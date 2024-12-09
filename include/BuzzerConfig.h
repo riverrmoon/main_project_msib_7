@@ -13,9 +13,9 @@ public:
     // Fungsi untuk membunyikan buzzer
     void beep(int times, int duration) {
         for (int i = 0; i < times; i++) {
-            digitalWrite(_pin, HIGH); // Menyalakan buzzer
+            digitalWrite(_pin, LOW); // Menyalakan buzzer
             delay(duration);          // Tunggu selama durasi yang ditentukan
-            digitalWrite(_pin, LOW);  // Mematikan buzzer
+            digitalWrite(_pin, HIGH);  // Mematikan buzzer
             delay(duration);          // Tunggu sebelum bunyi berikutnya
         }
     }
