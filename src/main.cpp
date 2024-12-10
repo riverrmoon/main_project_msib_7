@@ -126,8 +126,6 @@ void Registrasi()
 void loop()
 {
     button.loop();
-
-    // Perbarui kontrol dari Firebase setiap interval
     if (millis() - lastControlUpdate >= controlUpdateInterval)
     {
         lastControlUpdate = millis();
@@ -135,7 +133,6 @@ void loop()
         Serial.println("Kontrol Firebase diperbarui.");
     }
 
-    // Periksa koneksi WiFi
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("Tidak Terkoneksi WiFi!");
@@ -157,7 +154,7 @@ void loop()
             Serial.println("Mode: Registrasi");
             myOled.displayText("Mode: Registrasi", 2);
         }
-        else if (switchValue > 1)
+        else if (switchValue >= 2)
         {
             Serial.println("Reset tombol, count terlalu besar!");
             button.resetCount();
